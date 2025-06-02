@@ -39,7 +39,7 @@ class ApiViewController: UIViewController, UITableViewDelegate, UITableViewDataS
         apiKey = plist["key"] as! String
 
         // shopArray読み込み
-        updateShopArray(appendLoad: false)
+        //updateShopArray(appendLoad: false)
         
         // RefreshControlの設定
         let refreshControl = UIRefreshControl()
@@ -53,16 +53,18 @@ class ApiViewController: UIViewController, UITableViewDelegate, UITableViewDataS
     }
     
     // ここから
-    func updateShopArray(appendLoad: Bool = false, keyWord: String = "") {
+    func updateShopArray(appendLoad: Bool = false) {
         
         // 現在読み込み中なら読み込みを開始しない
         if isLoading {
             return
         }
+
         // 最後まで読み込んでいるなら、追加読み込みしない
         if appendLoad && isLastLoaded {
             return
         }
+
         // 読み込み開始位置を設定
         let startIndex: Int
         if appendLoad {
@@ -71,9 +73,6 @@ class ApiViewController: UIViewController, UITableViewDelegate, UITableViewDataS
             startIndex = 1
         }
         
-        if keyWord == "" {
-            return
-        }
         // 読み込み中状態開始
         isLoading = true
         
@@ -81,7 +80,7 @@ class ApiViewController: UIViewController, UITableViewDelegate, UITableViewDataS
             "key": apiKey,
             "start": startIndex,
             "count": 20,
-            "keyword": keyWord,
+            "keyword": searchBar.text!,
             "format": "json"
         ]
         print("APIリクエスト 開始位置: \(parameters["start"]!) 読み込み店舗数: \(parameters["count"]!)")    // 追加
@@ -140,7 +139,7 @@ class ApiViewController: UIViewController, UITableViewDelegate, UITableViewDataS
         cell.favoriteButton.setImage(starImage, for: .normal)
         
         if shopArray.count - indexPath.row < 10 {
-            self.updateShopArray(appendLoad: true, keyWord: searchBar.text!)
+            self.updateShopArray(appendLoad: true)
         }
         
         return cell
@@ -199,8 +198,14 @@ class ApiViewController: UIViewController, UITableViewDelegate, UITableViewDataS
     }
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        if !searchBar.text!.isEmpty {
-            updateShopArray(appendLoad: false, keyWord: searchBar.text!)
+
+        if searchBar.text!.isEmpty {
+            statusLabel.text = "キーワードを入力して検索してください"
+            shopArray = []
+            tableView.reloadData()
+        } else {
+            statusLabel.text = "読み込み中..."
+            updateShopArray(appendLoad: false)
         }
     }
     
